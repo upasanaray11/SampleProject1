@@ -33,6 +33,7 @@ public class Login {
     
     public void loginUser(){
         
+        this.getAllDetails();
         final String DB_URL = "jdbc:mysql://mis-sql.uhcl.edu/raythathau7484";
         
         //three important classses
@@ -42,7 +43,7 @@ public class Login {
         try{
             conn = DriverManager.getConnection(DB_URL,"raythathau7484","1570501");
             st = conn.createStatement();
-            String query = "Select * EMAIL_LOGIN_DETAILS where email_address = '"+ this.emailAddress + "'";
+            String query = "Select * from EMAIL_LOGIN_DETAILS where email_address = '"+ this.emailAddress + "'";
             rs = st.executeQuery(query);
             if(rs.next()){
                 //email id is found
@@ -54,18 +55,19 @@ public class Login {
                    //theLoginAccount.welcome();
                    System.out.println("Login successful! Welcome "+rs.getString(2));
                }
-                        
+               else{
+                   System.err.println("Password incorrect");
+               }        
             }
             else{
-                System.err.println("Password incorrect");
+                System.err.println("Username doesn't exist");
             }
         }
         catch(SQLException e){
-            
+            System.err.println("Something is wrong with DB connection");
         }
         finally{
-            //close the db
-            try{
+           try{
                 conn.close();
                 st.close();
                 rs.close();
