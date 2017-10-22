@@ -54,6 +54,7 @@ public class Login {
                    //OnlineAccount theloginAccount = new OnlineAccount(rs.getString(2), id,password);
                    //theLoginAccount.welcome();
                    System.out.println("Login successful! Welcome "+rs.getString(2));
+                   return this.emailAddress;
                }
                else{
                    System.err.println("Password incorrect");
@@ -76,7 +77,7 @@ public class Login {
                 e.printStackTrace();
             }
         }
-        return this.emailAddress;
+        return null;
     }
     
 }
