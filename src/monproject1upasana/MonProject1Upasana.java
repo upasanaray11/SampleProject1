@@ -5,6 +5,7 @@
  */
 package monproject1upasana;
 
+import monproject1upasana.email.EmailSenderReader;
 import monproject1upasana.login.Login;
 import monproject1upasana.login.Registration;
 
@@ -21,8 +22,10 @@ public class MonProject1Upasana {
         // TODO code application logic here
         Registration r = new Registration();
         Login l= new Login();
-       // r.registerUser();
-        l.loginUser();
+       //r.registerUser();
+        //l.loginUser();
+        EmailSenderReader e = new EmailSenderReader("upasanau1");
+        e.sendEmail();
     }
     
 }
