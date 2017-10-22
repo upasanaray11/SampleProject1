@@ -33,15 +33,10 @@ public class EmailSenderReader {
         
         String recipientID;
         String emailTitle;
-        String emailContent;
+        String content;
         String senderName ="abc";
         
-        java.util.Date dt = new java.util.Date();
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String currentTime = sdf.format(dt);
-              
         Scanner input = new Scanner(System.in);
-        
         System.out.println("Please enter the recipient you want to sent to: ");
         recipientID = input.nextLine();
         
@@ -49,8 +44,21 @@ public class EmailSenderReader {
         emailTitle = input.nextLine();
         
         System.out.println("Please enter the content: ");
-        emailContent = input.nextLine();
+        content = input.nextLine();
         
+        EmailContent emailContent = new EmailContent();
+        emailContent.setContent(content);
+        emailContent.setRecipient(recipientID);
+        emailContent.setTitle(emailTitle);
+        emailContent.setSenderName(senderName);
+        return insertEmailToDB(emailContent);
+       
+    }
+    
+    public boolean insertEmailToDB(EmailContent emailContent){
+        java.util.Date dt = new java.util.Date();
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String currentTime = sdf.format(dt);
         final String DB_URL = "jdbc:mysql://mis-sql.uhcl.edu/raythathau7484";
         
         //three important classses
@@ -60,22 +68,36 @@ public class EmailSenderReader {
         try{
             conn = DriverManager.getConnection(DB_URL,"raythathau7484","1570501");
             st = conn.createStatement();
-            String query = "Select * from EMAIL_LOGIN_DETAILS where email_address = '"+ recipientID + "'";
+            String query = "Select * from EMAIL_LOGIN_DETAILS where email_address = '"+ emailContent.getRecipient() + "'";
             rs = st.executeQuery(query);
             if(rs.next()){
-                int t = st.executeUpdate("Insert into EMAIL_CONTENT(RECIPIENT,TITLE,CONTENT,SENDER,SENDER_NAME,DATE) values ('"+ recipientID + "', '" + emailTitle + "', '"+ emailContent+ "', '"+ senderID+"', '"+ senderName+"', '"+ currentTime+"')");
+                int t = st.executeUpdate("Insert into EMAIL_CONTENT(RECIPIENT,TITLE,CONTENT,SENDER,SENDER_NAME,DATE,REPLY_ID) values ('"+ emailContent.getRecipient() + "', '" + emailContent.getTitle() + "', '"+ emailContent.getContent()+ "', '"+ emailContent.getSender()+"', '"+ emailContent.getSenderName()+"', '"+ currentTime+"', '"+ emailContent.getReplyID()+"')");
+                System.out.println("Email sent successfuly");
             }
             else{
                 System.err.println("Recipient emailId doesn't exist");
+                return false;
             }
     }
         catch(SQLException e){
             e.printStackTrace();
+            return false;
         }
+        finally{
+            try{
+                conn.close();
+                st.close();
+                rs.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        
+    }
         return true;
     }
     
-        public void retrieveReceivedEmail(String id,boolean isSentEmail){
+    public ArrayList<EmailContent> retrieveReceivedEmail(String id,boolean isSentEmail){
         
         final String DB_URL = "jdbc:mysql://mis-sql.uhcl.edu/raythathau7484";
         
@@ -96,12 +118,13 @@ public class EmailSenderReader {
             
             rs = st.executeQuery(query);
             ArrayList<EmailContent> emailContentList = this.convertResultSetToEmailContent(rs);
-            this.printEmailContent(emailContentList);
+            return emailContentList;
             
     }
         catch(SQLException e){
             e.printStackTrace();
         }
+        return null;
     }
        
     private ArrayList<EmailContent> convertResultSetToEmailContent(ResultSet rs){
@@ -131,8 +154,62 @@ public class EmailSenderReader {
     }
     
     public void printEmailContent(ArrayList<EmailContent> emailContentList){
+        int index=1;
         for(EmailContent e : emailContentList){
-            System.out.println(e.getDate()+","+e.getTitle()+","+e.getContent());
+            System.out.println(index +". "+e.getDate()+","+e.getTitle());
+            index++;
+        }        
+    }
+    
+    public EmailContent viewEmailOfGivenIndex(ArrayList<EmailContent> emailContentList, int i, boolean isSentFolder){
+        if(i>emailContentList.size()){
+            System.out.println("Index provided to view email is incorrect");
+            return null;
         }
+        EmailContent emailContent = emailContentList.get(i);
+        if(isSentFolder || emailContent.getReplyID() == null){
+            System.out.println("Date: "+emailContent.getDate());
+            System.out.println("Title: "+emailContent.getTitle());
+            System.out.println("Content: ");
+            System.out.println(emailContent.getContent());
+            System.out.println();
+            return emailContent;
+        }
+        EmailContent originalEmail = null;
+        
+        final String DB_URL = "jdbc:mysql://mis-sql.uhcl.edu/raythathau7484";
+        
+        //three important classses
+        Connection conn = null;
+        Statement st = null;
+        ResultSet rs = null;
+        try{
+            conn = DriverManager.getConnection(DB_URL,"raythathau7484","1570501");
+            st = conn.createStatement();
+            String query = "Select * from EMAIL_CONTENT where ID = "+emailContent.getReplyID();
+            rs = st.executeQuery(query);
+            originalEmail = this.convertResultSetToEmailContent(rs).get(0);
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+        }
+        if(originalEmail == null && emailContent.getReplyID() != null){
+            System.out.println("Something wrong in fectching the reply email.");
+            return null;
+        }
+        
+            System.out.println("Date: "+emailContent.getDate());
+            System.out.println("Title: "+emailContent.getTitle());
+            System.out.println("Content: ");
+            System.out.println(emailContent.getContent());
+            System.out.println();
+            System.out.println("------------------------------------------------");
+            System.out.println("Date: "+originalEmail.getDate());
+            System.out.println("Title: "+originalEmail.getTitle());
+            System.out.println("Content: ");
+            System.out.println(originalEmail.getContent());
+            System.out.println();
+            return emailContent;
+    
     }
 }

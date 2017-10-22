@@ -5,7 +5,9 @@
  */
 package monproject1upasana;
 
+import java.util.ArrayList;
 import java.util.Scanner;
+import monproject1upasana.email.EmailContent;
 import monproject1upasana.email.EmailSenderReader;
 import monproject1upasana.login.Login;
 import monproject1upasana.login.Registration;
@@ -72,17 +74,73 @@ public class MonProject1Upasana {
         System.out.println();
         
         if(selection.equals("1")){
-           e.retrieveReceivedEmail(userID, false);
+           ArrayList<EmailContent> emailContentList = e.retrieveReceivedEmail(userID, false);
+           e.printEmailContent(emailContentList);
+            System.out.println("Please enter the email you want to view: ");
+           int indexOfEmail = input.nextInt();
+           EmailContent emailContent = e.viewEmailOfGivenIndex(emailContentList, indexOfEmail-1, false);
+           viewEmailMenu(emailContent);
         }
         
         if(selection.equals("2")){
            e.sendEmail();
         }
         if(selection.equals("3")){
-           e.retrieveReceivedEmail(userID, true);
+           sentEmailMenu(userID);
         }
             
        }
     }
     
+    private static void sentEmailMenu(String userID){
+        EmailSenderReader e = new EmailSenderReader(userID);
+        ArrayList<EmailContent> emailContentList = e.retrieveReceivedEmail(userID, true);
+        if(emailContentList == null ||  emailContentList.isEmpty()){
+            System.out.println("No sent emails");
+            return;
+        }
+        e.printEmailContent(emailContentList);
+        Scanner input = new Scanner(System.in);
+        String selection = "";
+        
+        while(!selection.equals("x")){
+            System.out.println("Please make your selection");
+            System.out.println("1: View email");
+            System.out.println("x: Go back to main menu");
+        
+            selection = input.nextLine();
+            if(selection.equals("1")){
+                System.out.println("Please enter the index of the email you want to view: ");
+                int indexOfEmail = input.nextInt();
+                e.viewEmailOfGivenIndex(emailContentList, indexOfEmail-1,true);
+            }
+        }
+    }
+    
+    private static void viewEmailMenu(EmailContent emailContent){
+        Scanner input = new Scanner(System.in);
+        String selection = "";
+        EmailSenderReader e = new EmailSenderReader(emailContent.getRecipient());
+        
+        while(!selection.equals("x")){
+            System.out.println("Please make your selection");
+            System.out.println("1: Reply to email");
+            System.out.println("x: Go back to main menu");
+        
+            selection = input.nextLine();
+            if(selection.equals("1")){
+                System.out.println("Please enter the Content of email: ");
+                String content = input.nextLine();
+                EmailContent emailContent1 = new EmailContent();
+                emailContent1.setContent(content);
+                emailContent1.setTitle("Re: "+emailContent.getTitle());
+                emailContent1.setReplyID(emailContent.getOriginalID());
+                emailContent1.setIsNew(true);
+                emailContent1.setSender(emailContent.getRecipient());
+                emailContent1.setRecipient(emailContent.getSender());
+                e.insertEmailToDB(emailContent1);
+                break;
+            }
+        }
+    }
 }
