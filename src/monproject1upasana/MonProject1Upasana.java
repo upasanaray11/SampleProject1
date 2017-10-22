@@ -25,7 +25,10 @@ public class MonProject1Upasana {
        //r.registerUser();
         //l.loginUser();
         EmailSenderReader e = new EmailSenderReader("upasanau1");
-        e.sendEmail();
+        //e.sendEmail();
+        e.retrieveReceivedEmail("upasanau2");
+                 
+        
     }
     
 }

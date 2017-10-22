@@ -31,7 +31,7 @@ public class Login {
         password = input.nextLine();
     }
     
-    public void loginUser(){
+    public String loginUser(){
         
         this.getAllDetails();
         final String DB_URL = "jdbc:mysql://mis-sql.uhcl.edu/raythathau7484";
@@ -76,6 +76,7 @@ public class Login {
                 e.printStackTrace();
             }
         }
+        return this.emailAddress;
     }
     
 }
