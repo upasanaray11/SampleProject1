@@ -153,7 +153,7 @@ public class EmailSenderReader {
         return emailContentList;
     }
     
-    public void printEmailContent(ArrayList<EmailContent> emailContentList){
+    public String printEmailContent(ArrayList<EmailContent> emailContentList,boolean isFirst, boolean isLast){
         int index=1;
         for(EmailContent e : emailContentList){
             if(!e.isIsNew()){
@@ -163,7 +163,29 @@ public class EmailSenderReader {
                 System.out.println(index +". "+e.getDate()+","+e.getTitle()+" (new)");
             }
             index++;
-        }        
+        } 
+        Scanner input = new Scanner(System.in);
+        String selection ="";
+        if(isFirst && isLast){
+            if(emailContentList.size() != 0){
+            System.out.println("Provide index you want to read");
+            selection = input.nextLine();
+            }
+        }
+        if(isFirst && !isLast){
+            System.out.println("n: Next page");
+            System.out.println("Provide index you want to read");
+        }
+        if(!isFirst && isLast){
+            System.out.println("p: Previous page");
+            System.out.println("Provide index you want to read");
+        }
+        if(!isFirst && !isLast){
+            System.out.println("n: Next page");
+            System.out.println("p: Previous page");
+            System.out.println("Provide index you want to read");
+        }
+        return selection;
     }
     
     public EmailContent viewEmailOfGivenIndex(ArrayList<EmailContent> emailContentList, int i, boolean isSentFolder){
