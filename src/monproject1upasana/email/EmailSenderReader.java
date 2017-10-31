@@ -50,7 +50,7 @@ public class EmailSenderReader {
         emailContent.setContent(content);
         emailContent.setRecipient(recipientID);
         emailContent.setTitle(emailTitle);
-        emailContent.setSenderName(senderName);
+        emailContent.setSender(this.senderID);
         return insertEmailToDB(emailContent);
        
     }
@@ -71,7 +71,7 @@ public class EmailSenderReader {
             String query = "Select * from EMAIL_LOGIN_DETAILS where email_address = '"+ emailContent.getRecipient() + "'";
             rs = st.executeQuery(query);
             if(rs.next()){
-                int t = st.executeUpdate("Insert into EMAIL_CONTENT(RECIPIENT,TITLE,CONTENT,SENDER,SENDER_NAME,DATE,REPLY_ID) values ('"+ emailContent.getRecipient() + "', '" + emailContent.getTitle() + "', '"+ emailContent.getContent()+ "', '"+ emailContent.getSender()+"', '"+ emailContent.getSenderName()+"', '"+ currentTime+"', '"+ emailContent.getReplyID()+"')");
+                boolean t = st.execute("Insert into EMAIL_CONTENT(RECIPIENT,TITLE,CONTENT,SENDER,SENDER_NAME,DATE,REPLY_ID,IS_NEW) values ('"+ emailContent.getRecipient() + "', '" + emailContent.getTitle() + "', '"+ emailContent.getContent()+ "', '"+ emailContent.getSender()+"', '"+ emailContent.getSenderName()+"', '"+ currentTime+"', "+ emailContent.getReplyID()+", "+true+")");
                 System.out.println("Email sent successfuly");
             }
             else{
@@ -156,7 +156,12 @@ public class EmailSenderReader {
     public void printEmailContent(ArrayList<EmailContent> emailContentList){
         int index=1;
         for(EmailContent e : emailContentList){
-            System.out.println(index +". "+e.getDate()+","+e.getTitle());
+            if(!e.isIsNew()){
+                System.out.println(index +". "+e.getDate()+","+e.getTitle());
+            }
+            else{
+                System.out.println(index +". "+e.getDate()+","+e.getTitle()+" (new)");
+            }
             index++;
         }        
     }
@@ -167,6 +172,9 @@ public class EmailSenderReader {
             return null;
         }
         EmailContent emailContent = emailContentList.get(i);
+        if(emailContent.isIsNew()){
+            this.markMailAsRead(emailContent);
+        }
         if(isSentFolder || emailContent.getReplyID() == null){
             System.out.println("Date: "+emailContent.getDate());
             System.out.println("Title: "+emailContent.getTitle());
@@ -189,10 +197,11 @@ public class EmailSenderReader {
             String query = "Select * from EMAIL_CONTENT where ID = "+emailContent.getReplyID();
             rs = st.executeQuery(query);
             originalEmail = this.convertResultSetToEmailContent(rs).get(0);
-        }
+            }
         catch(SQLException e){
             e.printStackTrace();
         }
+        
         if(originalEmail == null && emailContent.getReplyID() != null){
             System.out.println("Something wrong in fectching the reply email.");
             return null;
@@ -211,5 +220,23 @@ public class EmailSenderReader {
             System.out.println();
             return emailContent;
     
+    }
+
+    private void markMailAsRead(EmailContent emailContent) {
+        final String DB_URL = "jdbc:mysql://mis-sql.uhcl.edu/raythathau7484";
+        
+        //three important classses
+        Connection conn = null;
+        Statement st = null;
+        
+        try{
+            conn = DriverManager.getConnection(DB_URL,"raythathau7484","1570501");
+            st = conn.createStatement();
+            String query = "Update EMAIL_CONTENT set IS_NEW ="+false+" where ID = "+emailContent.getOriginalID();
+            int t = st.executeUpdate(query);
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+        }
     }
 }

@@ -76,7 +76,7 @@ public class MonProject1Upasana {
         if(selection.equals("1")){
            ArrayList<EmailContent> emailContentList = e.retrieveReceivedEmail(userID, false);
            e.printEmailContent(emailContentList);
-            System.out.println("Please enter the email you want to view: ");
+           System.out.println("Please enter the email you want to view: ");
            int indexOfEmail = input.nextInt();
            EmailContent emailContent = e.viewEmailOfGivenIndex(emailContentList, indexOfEmail-1, false);
            viewEmailMenu(emailContent);
